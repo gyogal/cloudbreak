@@ -27,10 +27,18 @@ import com.sequenceiq.flow.core.config.FlowFinalizerCallback;
 public class ClusterCredentialChangeFlowConfig extends AbstractFlowConfiguration<ClusterCredentialChangeState, ClusterCredentialChangeEvent> {
     private static final List<Transition<ClusterCredentialChangeState, ClusterCredentialChangeEvent>> TRANSITIONS =
             new Builder<ClusterCredentialChangeState, ClusterCredentialChangeEvent>()
-                    .from(INIT_STATE).to(CLUSTER_CREDENTIALCHANGE_STATE).event(CLUSTER_CREDENTIALCHANGE_EVENT).noFailureEvent()
-                    .from(CLUSTER_CREDENTIALCHANGE_STATE).to(CLUSTER_CREDENTIALCHANGE_FINISHED_STATE).event(CLUSTER_CREDENTIALCHANGE_FINISHED_EVENT)
+                    .from(INIT_STATE)
+                    .to(CLUSTER_CREDENTIALCHANGE_STATE)
+                    .event(CLUSTER_CREDENTIALCHANGE_EVENT)
+                        .noFailureEvent()
+                    .from(CLUSTER_CREDENTIALCHANGE_STATE)
+                    .to(CLUSTER_CREDENTIALCHANGE_FINISHED_STATE)
+                    .event(CLUSTER_CREDENTIALCHANGE_FINISHED_EVENT)
                             .failureEvent(CLUSTER_CREDENTIALCHANGE_FINISHED_FAILURE_EVENT)
-                    .from(CLUSTER_CREDENTIALCHANGE_FINISHED_STATE).to(FINAL_STATE).event(FINALIZED_EVENT).failureEvent(FAILURE_EVENT)
+                    .from(CLUSTER_CREDENTIALCHANGE_FINISHED_STATE)
+                    .to(FINAL_STATE)
+                    .event(FINALIZED_EVENT)
+                        .failureEvent(FAILURE_EVENT)
                     .build();
 
     private static final FlowEdgeConfig<ClusterCredentialChangeState, ClusterCredentialChangeEvent> EDGE_CONFIG = new FlowEdgeConfig<>(INIT_STATE, FINAL_STATE,
