@@ -376,7 +376,7 @@ public class ClusterHostServiceRunner {
         }
     }
 
-    public void redeployGatewayCertificate(@Nonnull Stack stack, @Nonnull Cluster cluster) {
+    public void redeployGatewayConfigs(@Nonnull Stack stack, @Nonnull Cluster cluster) {
         try {
             Set<Node> allNodes = stackUtil.collectNodes(stack);
             Set<Node> reachableNodes = stackUtil.collectReachableNodes(stack);
@@ -385,6 +385,7 @@ public class ClusterHostServiceRunner {
             SaltConfig saltConfig = createSaltConfig(stack, cluster, grainsProperties);
             ExitCriteriaModel exitCriteriaModel = clusterDeletionBasedModel(stack.getId(), cluster.getId());
             hostOrchestrator.uploadGatewayPillar(gatewayConfigs, allNodes, exitCriteriaModel, saltConfig);
+
             hostOrchestrator.runService(gatewayConfigs, reachableNodes, saltConfig, exitCriteriaModel);
         } catch (CloudbreakOrchestratorCancelledException e) {
             throw new CancellationException(e.getMessage());

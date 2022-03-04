@@ -31,6 +31,7 @@ import com.sequenceiq.cloudbreak.cmtemplate.CMRepositoryVersionUtil;
 import com.sequenceiq.cloudbreak.common.exception.CloudbreakServiceException;
 import com.sequenceiq.cloudbreak.common.exception.NotFoundException;
 import com.sequenceiq.cloudbreak.common.orchestration.Node;
+import com.sequenceiq.cloudbreak.core.bootstrap.service.ClusterServiceRunner;
 import com.sequenceiq.cloudbreak.domain.stack.Stack;
 import com.sequenceiq.cloudbreak.domain.stack.cluster.host.HostGroup;
 import com.sequenceiq.cloudbreak.domain.stack.instance.InstanceMetaData;
@@ -83,6 +84,9 @@ public class DecommissionHandler implements EventHandler<DecommissionRequest> {
 
     @Inject
     private HostOrchestrator hostOrchestrator;
+
+    @Inject
+    private ClusterServiceRunner clusterServiceRunner;
 
     @Inject
     private GatewayConfigService gatewayConfigService;
@@ -139,6 +143,7 @@ public class DecommissionHandler implements EventHandler<DecommissionRequest> {
             } else {
                 result = singleHostsRemoval(request, hostNames, forced, stack, clusterDecomissionService, hostsToRemove);
             }
+            clusterServiceRunner.redeployGatewayConfigs(stack.getId());
         } catch (Exception e) {
             LOGGER.info("Exception occurred during decommission.", e);
             if (isTolerableError(e) && forced && !request.getDetails().isRepair()) {
