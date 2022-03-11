@@ -91,4 +91,15 @@ public class User implements TenantAwareResource, Serializable {
     public int hashCode() {
         return Objects.hashCode(userId);
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", userName='" + userName + '\'' +
+                ", userId='" + userId + '\'' +
+                ", userCrn='" + userCrn + '\'' +
+                ", tenant=" + tenant +
+                '}';
+    }
 }

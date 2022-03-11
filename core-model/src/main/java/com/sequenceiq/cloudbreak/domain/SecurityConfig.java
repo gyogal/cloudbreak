@@ -16,6 +16,7 @@ import com.sequenceiq.cloudbreak.domain.stack.Stack;
 import com.sequenceiq.cloudbreak.service.secret.SecretValue;
 import com.sequenceiq.cloudbreak.service.secret.domain.Secret;
 import com.sequenceiq.cloudbreak.service.secret.domain.SecretToString;
+import com.sequenceiq.cloudbreak.util.DatabaseUtil;
 import com.sequenceiq.cloudbreak.workspace.model.Workspace;
 import com.sequenceiq.cloudbreak.workspace.model.WorkspaceAwareResource;
 
@@ -143,5 +144,20 @@ public class SecurityConfig implements ProvisionEntity, WorkspaceAwareResource {
 
     public void setUserFacingKey(String userFacingKey) {
         this.userFacingKey = new Secret(userFacingKey);
+    }
+
+    @Override
+    public String toString() {
+        return "SecurityConfig{" +
+                "id=" + id +
+                ", clientKey=" + clientKey +
+                ", clientCert=" + clientCert +
+                ", stack=" + DatabaseUtil.lazyLoadSafeToString(stack, () -> stack.getResourceCrn()) +
+                ", saltSecurityConfig=" + saltSecurityConfig +
+                ", usePrivateIpToTls=" + usePrivateIpToTls +
+                ", workspace=" + workspace +
+                ", userFacingCert=" + userFacingCert +
+                ", userFacingKey=" + userFacingKey +
+                '}';
     }
 }
