@@ -473,6 +473,10 @@ public enum ResourceEvent {
     DATALAKE_RECOVERY_FAILED("datalake.recovery.failed"),
     DATALAKE_RECOVERY_FINISHED("datalake.recovery.finished"),
 
+    DATAHUB_REFRESH_IN_PROGRESS("datalake.datahub.refresh.in.progress"),
+    DATAHUB_REFRESH_FAILED("datalake.datahub.refresh.failed"),
+
+
     // deprecated
     STACK_GATEWAY_CERTIFICATE_CREATE_FAILED("stack.gateway.certificate.create.skipped");
 
