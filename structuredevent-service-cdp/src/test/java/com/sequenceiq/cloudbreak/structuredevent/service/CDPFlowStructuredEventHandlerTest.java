@@ -55,7 +55,7 @@ public class CDPFlowStructuredEventHandlerTest {
         Assertions.assertEquals(0L, flowDetails.getDuration());
 
         Boolean detailed = detailedCaptor.getValue();
-        Assertions.assertFalse(detailed);
+        Assertions.assertTrue(detailed);
     }
 
     @Test

@@ -12,10 +12,13 @@ import com.sequenceiq.cloudbreak.auth.ThreadBasedUserCrnProvider;
 import com.sequenceiq.cloudbreak.common.service.Clock;
 import com.sequenceiq.cloudbreak.structuredevent.event.CloudbreakEventService;
 import com.sequenceiq.cloudbreak.structuredevent.event.FlowDetails;
+import com.sequenceiq.cloudbreak.structuredevent.event.StackDetails;
 import com.sequenceiq.cloudbreak.structuredevent.event.cdp.CDPOperationDetails;
 import com.sequenceiq.cloudbreak.structuredevent.event.cdp.CDPStructuredFlowEvent;
+import com.sequenceiq.cloudbreak.structuredevent.event.cdp.freeipa.CDPFreeIpaStructuredFlowEvent;
 import com.sequenceiq.cloudbreak.structuredevent.service.CDPStructuredFlowEventFactory;
 import com.sequenceiq.flow.ha.NodeConfig;
+import com.sequenceiq.freeipa.converter.stack.StackToStackDetailsConverter;
 import com.sequenceiq.freeipa.entity.Stack;
 import com.sequenceiq.freeipa.entity.StackStatus;
 import com.sequenceiq.freeipa.service.stack.StackService;
@@ -32,6 +35,9 @@ public class FreeipaStructuredFlowEventFactory implements CDPStructuredFlowEvent
     @Inject
     private NodeConfig nodeConfig;
 
+    @Inject
+    private StackToStackDetailsConverter stackToStackDetailsConverter;
+
     @Value("${info.app.version:}")
     private String serviceVersion;
 
@@ -47,9 +53,13 @@ public class FreeipaStructuredFlowEventFactory implements CDPStructuredFlowEvent
         CDPOperationDetails operationDetails = new CDPOperationDetails(clock.getCurrentTimeMillis(), FLOW, resourceType, stack.getId(),
                 stack.getName(), nodeConfig.getId(), serviceVersion, stack.getAccountId(), stack.getResourceCrn(), ThreadBasedUserCrnProvider.getUserCrn(),
                 stack.getEnvironmentCrn(), null);
+        StackDetails stackDetails = null;
+        if (detailed) {
+            stackDetails = stackToStackDetailsConverter.convert(stack);
+        }
         StackStatus stackStatus = stack.getStackStatus();
-        CDPStructuredFlowEvent event = new CDPStructuredFlowEvent(operationDetails, flowDetails, null, stackStatus.getDetailedStackStatus().name(),
-                stackStatus.getStatusReason());
+        CDPFreeIpaStructuredFlowEvent event = new CDPFreeIpaStructuredFlowEvent(operationDetails, flowDetails, stackDetails,
+                stackStatus.getDetailedStackStatus().name(), stackStatus.getStatusReason());
         if (exception != null) {
             event.setException(ExceptionUtils.getStackTrace(exception));
         }

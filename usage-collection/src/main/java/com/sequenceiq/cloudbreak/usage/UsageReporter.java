@@ -67,6 +67,13 @@ public interface UsageReporter {
             UsageProto.CDPEnvironmentStatusChanged details);
 
     /**
+     * Reports that an CDP FreeIPA status has been changed.
+     * @param details the event status details
+     */
+    void cdpFreeIpaStatusChanged(
+            UsageProto.CDPFreeIPAStatusChanged details);
+
+    /**
      * Reports that an CDP Datalake has been requested.
      * @param details the event details
      */
