@@ -1,7 +1,7 @@
 package com.sequenceiq.cloudbreak.core.flow2.cluster.services.restart;
 
-import com.sequenceiq.cloudbreak.reactor.api.event.cluster.ClusterServicesRestartPollingResult;
-import com.sequenceiq.cloudbreak.reactor.api.event.cluster.ClusterServicesRestartResult;
+import com.sequenceiq.cloudbreak.reactor.api.event.cluster.restart.ClusterServicesRestartPollingResult;
+import com.sequenceiq.cloudbreak.reactor.api.event.cluster.restart.ClusterServicesRestartResult;
 import com.sequenceiq.flow.core.FlowEvent;
 import com.sequenceiq.flow.event.EventSelectorUtil;
 

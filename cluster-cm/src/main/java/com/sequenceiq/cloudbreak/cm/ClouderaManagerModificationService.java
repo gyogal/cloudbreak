@@ -650,7 +650,7 @@ public class ClouderaManagerModificationService implements ClusterModificationSe
         ClustersResourceApi apiInstance = clouderaManagerApiFactory.getClustersResourceApi(apiClient);
         return restartServices(apiInstance);
     }
-
+    
     private int restartServices(ClustersResourceApi clustersResourceApi) throws ApiException, CloudbreakException {
         return doRestartServicesIfNeeded(clustersResourceApi, false);
     }

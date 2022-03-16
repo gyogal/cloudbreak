@@ -4,6 +4,7 @@ import static java.lang.String.format;
 import static org.apache.commons.collections4.ListUtils.emptyIfNull;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -14,12 +15,15 @@ import org.springframework.stereotype.Component;
 
 import com.cloudera.api.swagger.HostsResourceApi;
 import com.cloudera.api.swagger.RoleConfigGroupsResourceApi;
+import com.cloudera.api.swagger.ServicesResourceApi;
 import com.cloudera.api.swagger.client.ApiClient;
 import com.cloudera.api.swagger.client.ApiException;
+import com.cloudera.api.swagger.model.ApiConfig;
 import com.cloudera.api.swagger.model.ApiConfigList;
 import com.cloudera.api.swagger.model.ApiHost;
 import com.cloudera.api.swagger.model.ApiRoleRef;
 import com.cloudera.api.swagger.model.ApiRoleState;
+import com.cloudera.api.swagger.model.ApiServiceConfig;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.response.instancegroup.instancemetadata.InstanceMetaDataV4Response;
 import com.sequenceiq.it.cloudbreak.dto.distrox.DistroXTestDto;
 import com.sequenceiq.it.cloudbreak.dto.sdx.SdxInternalTestDto;
@@ -210,6 +214,29 @@ public class ClouderaManagerClientActions extends ClouderaManagerClient {
             throw new TestFailException("Can't get role configs at: " + apiClient.getBasePath(), e);
         }
         return testDto;
+    }
+
+    public String getCmServiceResourceHiveHost(DistroXTestDto testDto, String user, String password) {
+        String serverIp = testDto.getResponse().getCluster().getServerIp();
+
+        ApiClient apiClient = getCmApiClientWithTimeoutDisabledDirect(serverIp, testDto.getName(), V_43, user, password);
+        // CHECKSTYLE:OFF
+        ServicesResourceApi servicesResourceApi = new ServicesResourceApi(apiClient);
+        // CHECKSTYLE:ON
+        try {
+            ApiServiceConfig apiServiceConfig = servicesResourceApi.readServiceConfig(testDto.getName(), "HIVE", "full");
+            Optional<String> hiveHost = apiServiceConfig.getItems().stream()
+                    .filter(a -> "hive_metastore_database_host".equals(a.getName())).findFirst().map(ApiConfig::getValue);
+            return hiveHost.orElseThrow(()  -> new TestFailException("no hive host register"));
+        } catch (ApiException e) {
+            LOGGER.error("Exception when calling ServicesResourceApi#readServiceConfig. Response: {}", e.getResponseBody(), e);
+            String message = format("Exception when calling ServicesResourceApi#readServiceConfig at %s. Response: %s",
+                    apiClient.getBasePath(), e.getResponseBody());
+            throw new TestFailException(message, e);
+        } catch (Exception e) {
+            LOGGER.error("Can't get service resource at: '{}'!", apiClient.getBasePath());
+            throw new TestFailException("Can't get service resource at: " + apiClient.getBasePath(), e);
+        }
     }
 
     public DistroXTestDto checkCmServicesStartedSuccessfully(DistroXTestDto testDto, String user, String password) {

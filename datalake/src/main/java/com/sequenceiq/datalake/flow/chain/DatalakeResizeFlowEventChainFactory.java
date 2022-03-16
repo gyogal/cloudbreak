@@ -63,7 +63,7 @@ public class DatalakeResizeFlowEventChainFactory implements FlowEventChainFactor
             chain.add(new DatalakeTriggerRestoreEvent(DATALAKE_TRIGGER_RESTORE_EVENT.event(), event.getResourceId(), event.getSdxCluster().getClusterName(),
                     event.getUserId(), null, event.getBackupLocation(), null, DatalakeRestoreFailureReason.RESTORE_ON_RESIZE));
         }
-        chain.add(new DatahubRefreshStartEvent(event.getResourceId(), event.getUserId()));
+        chain.add(new DatahubRefreshStartEvent(event.getResourceId(), event.getSdxCluster().getClusterName(), event.getUserId()));
         // Delete the detached Sdx
         chain.add(new SdxDeleteStartEvent(SDX_DELETE_EVENT.event(), event.getResourceId(), event.getUserId(), true));
 

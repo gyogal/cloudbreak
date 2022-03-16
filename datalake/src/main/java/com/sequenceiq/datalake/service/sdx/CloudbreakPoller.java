@@ -67,12 +67,6 @@ public class CloudbreakPoller {
                 Status.getAvailableStatuses(), Sets.immutableEnumSet(Status.UPGRADE_CCM_FAILED));
     }
 
-    public void pollDatahubRefreshUntilAvailable(SdxCluster sdxCluster, PollingConfig pollingConfig) {
-        //TODO need status
-        waitForState("Datahub Refresh", sdxCluster, pollingConfig,
-                Status.getAvailableStatuses(), Sets.immutableEnumSet(Status.AMBIGUOUS));
-    }
-
     public void waitForState(
             String process,
             SdxCluster sdxCluster,

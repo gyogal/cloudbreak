@@ -42,4 +42,9 @@ public class ClouderaManagerUtil {
     public DistroXTestDto checkCmServicesStartedSuccessfully(DistroXTestDto testDto, String user, String password) {
         return clouderaManagerClientActions.checkCmServicesStartedSuccessfully(testDto, user, password);
     }
+
+    public String getCmServiceResourceHiveHost(DistroXTestDto testDto, String user, String password) {
+        return clouderaManagerClientActions.getCmServiceResourceHiveHost(testDto, user, password);
+    }
+
 }

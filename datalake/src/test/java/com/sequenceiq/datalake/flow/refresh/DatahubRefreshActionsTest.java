@@ -36,6 +36,8 @@ public class DatahubRefreshActionsTest {
 
     private static final String FLOW_ID = "flow_id";
 
+    private static final String SDX_NAME = "sdx_name";
+
     private static final String USER_CRN = "crn:cdp:iam:us-west-1:1234:user:1";
 
     @Mock
@@ -59,7 +61,7 @@ public class DatahubRefreshActionsTest {
     @Test
     public void testStartTriggersCall() throws Exception {
 
-        DatahubRefreshStartEvent event = new DatahubRefreshStartEvent(SDX_ID, USER_CRN);
+        DatahubRefreshStartEvent event = new DatahubRefreshStartEvent(SDX_ID, SDX_NAME, USER_CRN);
         AbstractAction action = (AbstractAction) underTest.startDatahubRefreshAction();
         initActionPrivateFields(action);
         AbstractActionTestSupport testSupport = new AbstractActionTestSupport(action);
@@ -69,7 +71,7 @@ public class DatahubRefreshActionsTest {
         ArgumentCaptor<DatahubRefreshStartEvent> captor = ArgumentCaptor.forClass(DatahubRefreshStartEvent.class);
         verify(reactorEventFactory, times(1)).createEvent(any(), captor.capture());
         DatahubRefreshStartEvent captorValue = captor.getValue();
-        Assertions.assertEquals(SDX_ID, captorValue.getResourceId());
+        Assertions.assertEquals(SDX_NAME, captorValue.getSdxName());
     }
 
     private void initActionPrivateFields(Action<?, ?> action) {

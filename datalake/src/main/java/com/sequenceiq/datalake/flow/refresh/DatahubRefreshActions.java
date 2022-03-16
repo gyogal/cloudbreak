@@ -13,12 +13,14 @@ import org.springframework.statemachine.StateContext;
 import org.springframework.statemachine.action.Action;
 
 import com.sequenceiq.datalake.entity.DatalakeStatusEnum;
+import com.sequenceiq.datalake.entity.SdxCluster;
 import com.sequenceiq.datalake.flow.SdxContext;
 import com.sequenceiq.datalake.flow.SdxEvent;
 import com.sequenceiq.datalake.flow.refresh.event.DatahubRefreshFailedEvent;
 import com.sequenceiq.datalake.flow.refresh.event.DatahubRefreshStartEvent;
 import com.sequenceiq.datalake.flow.refresh.event.DatahubRefreshWaitEvent;
 import com.sequenceiq.datalake.service.AbstractSdxAction;
+import com.sequenceiq.datalake.service.sdx.SdxService;
 import com.sequenceiq.datalake.service.sdx.refresh.SdxRefreshService;
 import com.sequenceiq.datalake.service.sdx.status.SdxStatusService;
 import com.sequenceiq.flow.core.FlowEvent;
@@ -29,6 +31,9 @@ import com.sequenceiq.flow.core.FlowState;
 public class DatahubRefreshActions {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DatahubRefreshActions.class);
+
+    @Inject
+    private SdxService sdxService;
 
     @Inject
     private SdxRefreshService sdxRefreshService;
@@ -42,16 +47,22 @@ public class DatahubRefreshActions {
             @Override
             protected SdxContext createFlowContext(FlowParameters flowParameters, StateContext<FlowState, FlowEvent> stateContext,
                     DatahubRefreshStartEvent payload) {
-                return SdxContext.from(flowParameters, payload);
+
+                //Only called as a part of a resize operation so we should update the cluster to reference the newly created one
+                SdxCluster sdxCluster = sdxService.getByNameInAccount(payload.getUserId(), payload.getSdxName());
+                LOGGER.info("Updating the Sdx-id in context from {} to {}", payload.getResourceId(), sdxCluster.getId());
+                SdxContext sdxContext = SdxContext.from(flowParameters, payload);
+                sdxContext.setSdxId(sdxCluster.getId());
+                return sdxContext;
             }
 
             @Override
             protected void doExecute(SdxContext context, DatahubRefreshStartEvent payload, Map<Object, Object> variables) throws Exception {
+                payload = new DatahubRefreshStartEvent(context.getSdxId(), payload.getSdxName(), payload.getUserId());
                 LOGGER.info("Start datahub refresh for: {}", payload.getResourceId());
                 sdxRefreshService.refreshAllDatahub(payload.getResourceId());
                 sdxStatusService.setStatusForDatalakeAndNotify(DatalakeStatusEnum.DATAHUB_REFRESH_IN_PROGRESS,
                         "Datahub refresh in progress", payload.getResourceId());
-
                 sendEvent(context, DatahubRefreshFlowEvent.DATAHUB_REFRESH_IN_PROGRESS_EVENT.selector(), payload);
             }
 

@@ -8,6 +8,7 @@ import org.testng.annotations.Test;
 
 import com.sequenceiq.environment.api.v1.environment.model.EnvironmentNetworkMockParams;
 import com.sequenceiq.environment.api.v1.environment.model.response.EnvironmentStatus;
+import com.sequenceiq.it.cloudbreak.client.DistroXTestClient;
 import com.sequenceiq.it.cloudbreak.client.SdxTestClient;
 import com.sequenceiq.it.cloudbreak.context.Description;
 import com.sequenceiq.it.cloudbreak.context.MockedTestContext;
@@ -19,6 +20,9 @@ import com.sequenceiq.sdx.api.model.SdxClusterShape;
 import com.sequenceiq.sdx.api.model.SdxClusterStatusResponse;
 
 public class MockSdxResizeTests extends AbstractMockTest {
+
+    @Inject
+    private DistroXTestClient distroXTestClient;
 
     @Inject
     private SdxTestClient sdxTestClient;

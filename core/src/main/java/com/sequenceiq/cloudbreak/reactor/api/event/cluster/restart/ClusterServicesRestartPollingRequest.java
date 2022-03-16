@@ -1,4 +1,4 @@
-package com.sequenceiq.cloudbreak.reactor.api.event.cluster;
+package com.sequenceiq.cloudbreak.reactor.api.event.cluster.restart;
 
 import com.sequenceiq.cloudbreak.reactor.api.ClusterPlatformRequest;
 

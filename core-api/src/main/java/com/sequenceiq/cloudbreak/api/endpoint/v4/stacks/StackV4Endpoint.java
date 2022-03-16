@@ -575,7 +575,7 @@ public interface StackV4Endpoint {
             @QueryParam("initiatorUserCrn") String initiatorUserCrn);
 
     @PUT
-    @Path("internal/{name}/restartServices")
+    @Path("internal/{name}/restart_services")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = RESTART_SERVICES_BY_NAME_IN_WORKSPACE_INTERNAL, produces = MediaType.APPLICATION_JSON, notes = Notes.STACK_NOTES,
             nickname = "RestartServicesInCluster")

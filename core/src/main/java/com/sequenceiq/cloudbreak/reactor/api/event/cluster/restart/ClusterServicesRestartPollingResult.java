@@ -1,6 +1,7 @@
-package com.sequenceiq.cloudbreak.reactor.api.event.cluster;
+package com.sequenceiq.cloudbreak.reactor.api.event.cluster.restart;
 
 import com.sequenceiq.cloudbreak.reactor.api.ClusterPlatformResult;
+import com.sequenceiq.cloudbreak.reactor.api.event.cluster.ClusterStartPollingRequest;
 
 public class ClusterServicesRestartPollingResult extends ClusterPlatformResult<ClusterStartPollingRequest> {
 
