@@ -74,4 +74,6 @@ include 'cloud-aws-common'
 include 'cloud-aws-native'
 include 'custom-configurations'
 include 'custom-configurations-api'
+include 'billing'
+include 'billing-api'
 
