@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -78,7 +79,7 @@ class ClusterUpscaleServiceTest {
         when(hostGroupService.getByClusterWithRecipes(any())).thenReturn(Set.of(hostGroup));
         when(parcelService.removeUnusedParcelComponents(stack)).thenReturn(new ParcelOperationStatus(Collections.emptyMap(), Collections.emptyMap()));
 
-        underTest.installServicesOnNewHosts(1L, Set.of("master"), true, true);
+        underTest.installServicesOnNewHosts(1L, Set.of("master"), true, true, new HashMap<>());
 
         verify(clusterApi, times(1)).upscaleCluster(any());
         verify(clusterApi, times(1)).restartAll(false);
@@ -109,7 +110,7 @@ class ClusterUpscaleServiceTest {
         when(hostGroupService.getByClusterWithRecipes(any())).thenReturn(Set.of(hostGroup));
         when(parcelService.removeUnusedParcelComponents(stack)).thenReturn(new ParcelOperationStatus(Collections.emptyMap(), Collections.emptyMap()));
 
-        underTest.installServicesOnNewHosts(1L, Set.of("master"), true, true);
+        underTest.installServicesOnNewHosts(1L, Set.of("master"), true, true, new HashMap<>());
 
         verify(clusterApi, times(1)).upscaleCluster(any());
         verify(clusterApi, times(0)).restartAll(false);
@@ -126,7 +127,8 @@ class ClusterUpscaleServiceTest {
         when(stackService.getByIdWithClusterInTransaction(eq(1L))).thenReturn(stack);
         when(parcelService.removeUnusedParcelComponents(stack)).thenReturn(new ParcelOperationStatus(Collections.emptyMap(), Map.of("parcel", "parcel")));
 
-        CloudbreakException exception = assertThrows(CloudbreakException.class, () -> underTest.installServicesOnNewHosts(1L, Set.of("master"), true, true));
+        CloudbreakException exception = assertThrows(CloudbreakException.class,
+                () -> underTest.installServicesOnNewHosts(1L, Set.of("master"), true, true, new HashMap<>()));
 
         assertEquals("Failed to remove the following parcels: {parcel=[parcel]}", exception.getMessage());
         verify(parcelService).removeUnusedParcelComponents(stack);
