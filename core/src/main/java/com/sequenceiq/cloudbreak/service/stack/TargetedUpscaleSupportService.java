@@ -7,12 +7,12 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.sequenceiq.cloudbreak.auth.altus.EntitlementService;
 import com.sequenceiq.cloudbreak.auth.crn.Crn;
 import com.sequenceiq.cloudbreak.common.orchestration.Node;
+import com.sequenceiq.cloudbreak.domain.stack.DnsResolverType;
 import com.sequenceiq.cloudbreak.domain.stack.Stack;
 import com.sequenceiq.cloudbreak.orchestrator.host.HostOrchestrator;
 import com.sequenceiq.cloudbreak.orchestrator.model.GatewayConfig;
@@ -36,26 +36,36 @@ public class TargetedUpscaleSupportService {
     @Inject
     private StackUtil stackUtil;
 
-    @Cacheable(cacheNames = "targetedUpscaleCache", key = "{ #stack.resourceCrn }")
+    public TargetedUpscaleSupportService() {
+    }
+
     public boolean targetedUpscaleOperationSupported(Stack stack) {
         try {
-            String accountId = Crn.safeFromString(stack.getResourceCrn()).getAccountId();
-            return entitlementService.targetedUpscaleSupported(accountId) &&
-                    isUnboundEliminationSupported(accountId) && isUnboundClusterConfigRemoved(stack);
+            return targetedUpscaleEntitlementsEnabled(stack.getResourceCrn()) && DnsResolverType.FREEIPA.equals(stack.getDomainDnsResolver());
         } catch (Exception e) {
             LOGGER.error("Error occurred during checking if targeted upscale supported, thus assuming it is not enabled, cause: ", e);
             return false;
         }
     }
 
-    private boolean isUnboundClusterConfigRemoved(Stack stack) {
+    public boolean targetedUpscaleEntitlementsEnabled(String crn) {
+        String accountId = Crn.safeFromString(crn).getAccountId();
+        return entitlementService.targetedUpscaleSupported(accountId) && isUnboundEliminationSupported(accountId);
+    }
+
+    public Stack updateDnsResolverType(Stack stack) {
         GatewayConfig primaryGatewayConfig = gatewayConfigService.getPrimaryGatewayConfig(stack);
         Set<Node> reachableNodes = stackUtil.collectReachableNodes(stack);
         Set<String> reachableHostnames = reachableNodes.stream().map(Node::getHostname).collect(Collectors.toSet());
         boolean unboundClusterConfigPresentOnAnyNodes = hostOrchestrator.unboundClusterConfigPresentOnAnyNodes(primaryGatewayConfig, reachableHostnames);
         LOGGER.info("Result of check whether unbound config is present on nodes of stack [{}] is: {}",
                 stack.getResourceCrn(), unboundClusterConfigPresentOnAnyNodes);
-        return !unboundClusterConfigPresentOnAnyNodes;
+        if (unboundClusterConfigPresentOnAnyNodes) {
+            stack.setDomainDnsResolver(DnsResolverType.LOCAL_UNBOUND);
+        } else {
+            stack.setDomainDnsResolver(DnsResolverType.FREEIPA);
+        }
+        return stack;
     }
 
     private boolean isUnboundEliminationSupported(String accountId) {

@@ -63,6 +63,7 @@ import com.sequenceiq.cloudbreak.service.resource.ResourceService;
 import com.sequenceiq.cloudbreak.service.stack.InstanceGroupService;
 import com.sequenceiq.cloudbreak.service.stack.InstanceMetaDataService;
 import com.sequenceiq.cloudbreak.service.stack.StackService;
+import com.sequenceiq.cloudbreak.service.stack.TargetedUpscaleSupportService;
 import com.sequenceiq.common.api.adjustment.AdjustmentTypeWithThreshold;
 import com.sequenceiq.common.api.type.AdjustmentType;
 import com.sequenceiq.common.api.type.InstanceGroupType;
@@ -101,6 +102,9 @@ public class StackUpscaleActions {
 
     @Inject
     private EnvironmentClientService environmentClientService;
+
+    @Inject
+    private TargetedUpscaleSupportService targetedUpscaleSupportService;
 
     @Bean(name = "UPSCALE_PREVALIDATION_STATE")
     public Action<?, ?> prevalidate() {
@@ -142,6 +146,7 @@ public class StackUpscaleActions {
                 Map<String, Integer> hostGroupWithInstanceCountToCreate = getHostGroupsWithInstanceCountToCreate(context);
                 Stack updatedStack = instanceMetaDataService.saveInstanceAndGetUpdatedStack(context.getStack(), hostGroupWithInstanceCountToCreate,
                         context.getHostgroupWithHostnames(), false, context.isRepair(), context.getStackNetworkScaleDetails());
+                targetedUpscaleSupportService.updateDnsResolverType(updatedStack);
                 CloudStack cloudStack = cloudStackConverter.convert(updatedStack);
                 return new UpscaleStackValidationRequest<UpscaleStackValidationResult>(context.getCloudContext(), context.getCloudCredential(), cloudStack);
             }

@@ -7,8 +7,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Set;
-
 import javax.ws.rs.InternalServerErrorException;
 
 import org.junit.jupiter.api.Test;
@@ -18,11 +16,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.sequenceiq.cloudbreak.auth.altus.EntitlementService;
+import com.sequenceiq.cloudbreak.domain.stack.DnsResolverType;
 import com.sequenceiq.cloudbreak.domain.stack.Stack;
-import com.sequenceiq.cloudbreak.orchestrator.host.HostOrchestrator;
-import com.sequenceiq.cloudbreak.orchestrator.model.GatewayConfig;
-import com.sequenceiq.cloudbreak.service.GatewayConfigService;
-import com.sequenceiq.cloudbreak.util.StackUtil;
 
 @ExtendWith(MockitoExtension.class)
 public class TargetedUpscaleSupportServiceTest {
@@ -32,15 +27,6 @@ public class TargetedUpscaleSupportServiceTest {
     @Mock
     private EntitlementService entitlementService;
 
-    @Mock
-    private GatewayConfigService gatewayConfigService;
-
-    @Mock
-    private HostOrchestrator hostOrchestrator;
-
-    @Mock
-    private StackUtil stackUtil;
-
     @InjectMocks
     private TargetedUpscaleSupportService underTest;
 
@@ -48,44 +34,39 @@ public class TargetedUpscaleSupportServiceTest {
     public void testIfEntitlementsDisabled() {
         when(entitlementService.targetedUpscaleSupported(any())).thenReturn(Boolean.TRUE);
         when(entitlementService.isUnboundEliminationSupported(any())).thenReturn(Boolean.FALSE);
-        assertFalse(underTest.targetedUpscaleOperationSupported(getStack()));
+        assertFalse(underTest.targetedUpscaleOperationSupported(getStack(DnsResolverType.UNKNOWN)));
 
         when(entitlementService.targetedUpscaleSupported(any())).thenReturn(Boolean.FALSE);
-        assertFalse(underTest.targetedUpscaleOperationSupported(getStack()));
+        assertFalse(underTest.targetedUpscaleOperationSupported(getStack(DnsResolverType.UNKNOWN)));
 
         verify(entitlementService, times(2)).targetedUpscaleSupported(any());
         verify(entitlementService, times(1)).isUnboundEliminationSupported(any());
     }
 
     @Test
-    public void testIfUnboundConfigPresent() {
+    public void testIfFreeipaDnsResolver() {
         when(entitlementService.targetedUpscaleSupported(any())).thenReturn(Boolean.TRUE);
         when(entitlementService.isUnboundEliminationSupported(any())).thenReturn(Boolean.TRUE);
-        when(gatewayConfigService.getPrimaryGatewayConfig(any())).thenReturn(new GatewayConfig(null, null, null, null, null, null));
-        when(stackUtil.collectReachableNodes(any())).thenReturn(Set.of());
-        when(hostOrchestrator.unboundClusterConfigPresentOnAnyNodes(any(), any())).thenReturn(Boolean.TRUE);
-        assertFalse(underTest.targetedUpscaleOperationSupported(getStack()));
+        assertTrue(underTest.targetedUpscaleOperationSupported(getStack(DnsResolverType.FREEIPA)));
     }
 
     @Test
-    public void testIfUnboundConfigNotPresent() {
+    public void testIfUnboundDnsResolver() {
         when(entitlementService.targetedUpscaleSupported(any())).thenReturn(Boolean.TRUE);
         when(entitlementService.isUnboundEliminationSupported(any())).thenReturn(Boolean.TRUE);
-        when(gatewayConfigService.getPrimaryGatewayConfig(any())).thenReturn(new GatewayConfig(null, null, null, null, null, null));
-        when(stackUtil.collectReachableNodes(any())).thenReturn(Set.of());
-        when(hostOrchestrator.unboundClusterConfigPresentOnAnyNodes(any(), any())).thenReturn(Boolean.FALSE);
-        assertTrue(underTest.targetedUpscaleOperationSupported(getStack()));
+        assertFalse(underTest.targetedUpscaleOperationSupported(getStack(DnsResolverType.LOCAL_UNBOUND)));
     }
 
     @Test
     public void testIfThereIsAnyError() {
         when(entitlementService.targetedUpscaleSupported(any())).thenThrow(new InternalServerErrorException("error"));
-        assertFalse(underTest.targetedUpscaleOperationSupported(getStack()));
+        assertFalse(underTest.targetedUpscaleOperationSupported(getStack(DnsResolverType.UNKNOWN)));
     }
 
-    private Stack getStack() {
+    private Stack getStack(DnsResolverType dnsResolverType) {
         Stack stack = new Stack();
         stack.setResourceCrn(DATAHUB_CRN);
+        stack.setDomainDnsResolver(dnsResolverType);
         return stack;
     }
 }

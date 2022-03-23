@@ -5,6 +5,7 @@ import static com.sequenceiq.cloudbreak.core.flow2.stack.upscale.AbstractStackUp
 import static com.sequenceiq.cloudbreak.core.flow2.stack.upscale.AbstractStackUpscaleAction.REPAIR;
 import static com.sequenceiq.cloudbreak.core.flow2.stack.upscale.AbstractStackUpscaleAction.TRIGGERED_VARIANT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.mock;
@@ -44,6 +45,8 @@ import com.sequenceiq.cloudbreak.domain.stack.Stack;
 import com.sequenceiq.cloudbreak.reactor.api.event.stack.UpscaleStackResult;
 import com.sequenceiq.cloudbreak.service.resource.ResourceService;
 import com.sequenceiq.cloudbreak.service.stack.InstanceMetaDataService;
+import com.sequenceiq.cloudbreak.service.stack.StackService;
+import com.sequenceiq.cloudbreak.service.stack.TargetedUpscaleSupportService;
 import com.sequenceiq.common.api.adjustment.AdjustmentTypeWithThreshold;
 import com.sequenceiq.common.api.type.AdjustmentType;
 import com.sequenceiq.flow.core.AbstractActionTestSupport;
@@ -119,6 +122,12 @@ class StackUpscaleActionsTest {
     @Mock
     private CloudResourceStatus cloudResourceStatus;
 
+    @Mock
+    private TargetedUpscaleSupportService targetedUpscaleSupportService;
+
+    @Mock
+    private StackService stackService;
+
     @BeforeEach
     void setUp() {
         context = new StackScalingFlowContext(flowParameters, stack, cloudContext, cloudCredential, cloudStack, Map.of(INSTANCE_GROUP_NAME, ADJUSTMENT),
@@ -150,10 +159,13 @@ class StackUpscaleActionsTest {
         Stack updatedStack = mock(Stack.class);
         when(instanceMetaDataService.saveInstanceAndGetUpdatedStack(stack, Map.of(INSTANCE_GROUP_NAME, 3), Map.of(), false, false,
                 context.getStackNetworkScaleDetails())).thenReturn(updatedStack);
+        when(targetedUpscaleSupportService.updateDnsResolverType(any())).thenReturn(updatedStack);
+        when(stackService.save(any())).thenReturn(updatedStack);
         CloudStack convertedCloudStack = mock(CloudStack.class);
         when(cloudStackConverter.convert(updatedStack)).thenReturn(convertedCloudStack);
 
         when(reactorEventFactory.createEvent(anyMap(), isNotNull())).thenReturn(event);
+
 
         new AbstractActionTestSupport<>(getPrevalidateAction()).doExecute(context, payload, Map.of());
 
