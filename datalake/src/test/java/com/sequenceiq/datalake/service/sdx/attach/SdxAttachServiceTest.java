@@ -17,6 +17,8 @@ import org.mockito.MockitoAnnotations;
 
 import com.sequenceiq.authorization.service.OwnerAssignmentService;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.StackV4Endpoint;
+import com.sequenceiq.cloudbreak.auth.crn.RegionAwareInternalCrnGenerator;
+import com.sequenceiq.cloudbreak.auth.crn.RegionAwareInternalCrnGeneratorFactory;
 import com.sequenceiq.datalake.entity.DatalakeStatusEnum;
 import com.sequenceiq.datalake.entity.SdxCluster;
 import com.sequenceiq.datalake.service.sdx.SdxService;
@@ -59,6 +61,12 @@ public class SdxAttachServiceTest {
 
     @Mock
     private SdxStatusService mockSdxStatusService;
+
+    @Mock
+    private RegionAwareInternalCrnGeneratorFactory regionAwareInternalCrnGeneratorFactory;
+
+    @Mock
+    private RegionAwareInternalCrnGenerator regionAwareInternalCrnGenerator;
 
     @InjectMocks
     private SdxAttachDetachUtils mockSdxAttachDetachUtils = spy(SdxAttachDetachUtils.class);
@@ -109,6 +117,8 @@ public class SdxAttachServiceTest {
 
     @Test
     void testReattachStack() {
+        when(regionAwareInternalCrnGenerator.getInternalCrnForServiceAsString()).thenReturn("crn");
+        when(regionAwareInternalCrnGeneratorFactory.iam()).thenReturn(regionAwareInternalCrnGenerator);
         testCluster.setClusterName(ORIGINAL_TEST_CLUSTER_NAME);
         testCluster.setCrn(ORIGINAL_TEST_CLUSTER_CRN);
         sdxAttachService.reattachStack(testCluster, TEST_CLUSTER_NAME);
@@ -119,6 +129,8 @@ public class SdxAttachServiceTest {
 
     @Test
     void testReattachExternalDatabase() throws Exception {
+        when(regionAwareInternalCrnGenerator.getInternalCrnForServiceAsString()).thenReturn("crn");
+        when(regionAwareInternalCrnGeneratorFactory.iam()).thenReturn(regionAwareInternalCrnGenerator);
         when(mockSdxDetachNameGenerator.generateOriginalNameFromDetached(any())).thenReturn(ORIGINAL_TEST_CLUSTER_NAME);
         when(mockSdxService.save(any())).thenReturn(testCluster);
 

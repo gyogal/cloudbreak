@@ -49,7 +49,8 @@ import com.sequenceiq.cloudbreak.auth.altus.config.UmsClientConfig;
 import com.sequenceiq.cloudbreak.auth.altus.exception.UmsOperationException;
 import com.sequenceiq.cloudbreak.auth.altus.model.AltusCredential;
 import com.sequenceiq.cloudbreak.auth.crn.Crn;
-import com.sequenceiq.cloudbreak.auth.crn.InternalCrnBuilder;
+import com.sequenceiq.cloudbreak.auth.crn.RegionAwareInternalCrnGeneratorFactory;
+import com.sequenceiq.cloudbreak.auth.crn.RegionAwareInternalCrnGeneratorUtil;
 import com.sequenceiq.cloudbreak.common.exception.CloudbreakServiceException;
 import com.sequenceiq.cloudbreak.grpc.ManagedChannelWrapper;
 import com.sequenceiq.cloudbreak.logger.MDCBuilder;
@@ -76,6 +77,9 @@ public class GrpcUmsClient {
 
     @Inject
     private UmsClientConfig umsClientConfig;
+
+    @Inject
+    private RegionAwareInternalCrnGeneratorFactory regionAwareInternalCrnGeneratorFactory;
 
     @Inject
     private Tracer tracer;
@@ -449,7 +453,7 @@ public class GrpcUmsClient {
 
     @Cacheable(cacheNames = "umsUserHasRightsForResourceCache", key = "{ #userCrn, #right, #resource }")
     public boolean checkResourceRight(String userCrn, String right, String resource, Optional<String> requestId) {
-        if (InternalCrnBuilder.isInternalCrn(userCrn)) {
+        if (RegionAwareInternalCrnGeneratorUtil.isInternalCrn(userCrn)) {
             LOGGER.info("InternalCrn, allow right {} for user {}!", right, userCrn);
             return true;
         }
@@ -458,7 +462,7 @@ public class GrpcUmsClient {
 
     @Cacheable(cacheNames = "umsUserHasRightsForResourceCache", key = "{ #userCrn, #right, #resource }")
     public boolean checkResourceRightLegacy(String userCrn, String right, String resource, Optional<String> requestId) {
-        if (InternalCrnBuilder.isInternalCrn(userCrn)) {
+        if (RegionAwareInternalCrnGeneratorUtil.isInternalCrn(userCrn)) {
             LOGGER.info("InternalCrn, allow right {} for user {}!", right, userCrn);
             return true;
         }
@@ -472,7 +476,7 @@ public class GrpcUmsClient {
 
     @Cacheable(cacheNames = "umsUserRightsCache", key = "{ #userCrn, #right }")
     public boolean checkAccountRight(String userCrn, String right, Optional<String> requestId) {
-        if (InternalCrnBuilder.isInternalCrn(userCrn)) {
+        if (RegionAwareInternalCrnGeneratorUtil.isInternalCrn(userCrn)) {
             LOGGER.info("InternalCrn, allow account right {} for user {}!", right, userCrn);
             return true;
         }
@@ -535,7 +539,7 @@ public class GrpcUmsClient {
         checkArgument(rightChecks.stream().map(RightCheck::getResource).allMatch(VALID_AUTHZ_RESOURCE),
                 String.format("Following resources are not provided in CRN format: %s.", Joiner.on(",").join(
                         rightChecks.stream().map(RightCheck::getResource).filter(Predicate.not(VALID_AUTHZ_RESOURCE)).collect(Collectors.toList()))));
-        if (InternalCrnBuilder.isInternalCrn(memberCrn)) {
+        if (RegionAwareInternalCrnGeneratorUtil.isInternalCrn(memberCrn)) {
             LOGGER.info("InternalCrn has all rights");
             return rightChecks.stream().map(rightCheck -> Boolean.TRUE).collect(Collectors.toList());
         }
@@ -585,7 +589,7 @@ public class GrpcUmsClient {
         if (CollectionUtils.isEmpty(resourceCrns)) {
             return List.of();
         }
-        if (InternalCrnBuilder.isInternalCrn(memberCrn)) {
+        if (RegionAwareInternalCrnGeneratorUtil.isInternalCrn(memberCrn)) {
             return resourceCrns.stream().map(r -> true).collect(Collectors.toList());
         }
         LOGGER.debug("Check if {} has rights on resources {}", memberCrn, resourceCrns);
@@ -757,12 +761,12 @@ public class GrpcUmsClient {
 
     @VisibleForTesting
     UmsClient makeClient(ManagedChannel channel) {
-        return new UmsClient(channel, umsClientConfig, tracer);
+        return new UmsClient(channel, umsClientConfig, tracer, regionAwareInternalCrnGeneratorFactory);
     }
 
     @VisibleForTesting
     AuthorizationClient makeAuthorizationClient() {
-        return new AuthorizationClient(channelWrapper.getChannel(), umsClientConfig, tracer);
+        return new AuthorizationClient(channelWrapper.getChannel(), umsClientConfig, tracer, regionAwareInternalCrnGeneratorFactory);
     }
 
     /**

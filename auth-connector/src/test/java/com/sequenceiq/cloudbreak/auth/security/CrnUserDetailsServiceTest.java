@@ -13,8 +13,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.cloudera.thunderhead.service.usermanagement.UserManagementProto.User;
-import com.sequenceiq.cloudbreak.auth.crn.InternalCrnBuilder;
-import com.sequenceiq.cloudbreak.auth.crn.Crn;
 import com.sequenceiq.cloudbreak.auth.altus.GrpcUmsClient;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -34,15 +32,13 @@ public class CrnUserDetailsServiceTest {
 
     @Test
     public void loadUserByInternalCrn() {
-        InternalCrnBuilder crnBuilder = new InternalCrnBuilder(Crn.Service.ENVIRONMENTS);
-        UserDetails userDetails = underTest.loadUserByUsername(crnBuilder.getInternalCrnForServiceAsString());
+        UserDetails userDetails = underTest.loadUserByUsername("crn:cdp:freeipa:us-west-1:altus:user:__internal__actor__");
         assertTrue(userDetails.getAuthorities().iterator().next().getAuthority().equals("ROLE_INTERNAL"));
     }
 
     @Test
     public void loadUserByInternalCrnWithAutoscale() {
-        InternalCrnBuilder crnBuilder = new InternalCrnBuilder(Crn.Service.AUTOSCALE);
-        UserDetails userDetails = underTest.loadUserByUsername(crnBuilder.getInternalCrnForServiceAsString());
+        UserDetails userDetails = underTest.loadUserByUsername("crn:cdp:autoscale:us-west-1:altus:user:__internal__actor__");
         assertTrue(userDetails.getAuthorities().iterator().next().getAuthority().equals("ROLE_AUTOSCALE"));
     }
 

@@ -11,7 +11,7 @@ import com.sequenceiq.cloudbreak.auth.altus.GrpcUmsClient;
 import com.sequenceiq.cloudbreak.auth.altus.exception.UmsAuthenticationException;
 import com.sequenceiq.cloudbreak.auth.crn.Crn;
 import com.sequenceiq.cloudbreak.auth.crn.CrnParseException;
-import com.sequenceiq.cloudbreak.auth.crn.InternalCrnBuilder;
+import com.sequenceiq.cloudbreak.auth.crn.RegionAwareInternalCrnGeneratorUtil;
 import com.sequenceiq.cloudbreak.common.user.CloudbreakUser;
 import com.sequenceiq.cloudbreak.logger.MDCBuilder;
 
@@ -43,8 +43,8 @@ public class UmsAuthenticationService implements AuthenticationService {
         CloudbreakUser cloudbreakUser;
         switch (crn.getResourceType()) {
             case USER:
-                if (InternalCrnBuilder.isInternalCrn(userCrn)) {
-                    return InternalCrnBuilder.createInternalCrnUser(Crn.fromString(userCrn));
+                if (RegionAwareInternalCrnGeneratorUtil.isInternalCrn(userCrn)) {
+                    return RegionAwareInternalCrnGeneratorUtil.createInternalCrnUser(Crn.fromString(userCrn));
                 } else {
                     User userInfo = umsClient.getUserDetails(userCrn, Optional.ofNullable(requestId));
                     String userName = principal != null ? principal : userInfo.getEmail();
